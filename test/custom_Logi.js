@@ -18,6 +18,11 @@ contract('LOGI', function(accounts) {
         return new web3.BigNumber(amount).shift(18);
     };
 
+    function waitOneMonth() {
+        const oneMonth = 60 * 60 * 24 * 31;
+        web3.currentProvider.send({ jsonrpc: "2.0", method: "evm_increaseTime", params: [oneMonth], id: 0 })
+    };
+
     beforeEach(async function() {
         logiToken = await LogiToken.new();
         await logiToken.generateTokens(sid, tokens(100), { from: sid });
@@ -37,6 +42,32 @@ contract('LOGI', function(accounts) {
 
             assert.isTrue(await logiToken.transfersEnabled.call());
             assert.isTrue(await logiToken.transfer.call(alice, tokens(1), { from: sid }))
+        });
+    });
+
+    describe('setLocks(_holders, _lockups)', function() {
+        it('should lock funds', async function() {
+            await logiToken.generateTokens(alice, tokens(1), { from: sid });
+
+            let timeout = (Date.now() / 1000) + (60 * 60 * 24 * 31);
+
+            await logiToken.setLocks([alice], [timeout], { from: sid });
+            await logiToken.finishMinting();
+
+            await expectRevertOrFail(logiToken.transfer(bob, tokens(1), { from: alice }));
+        });
+
+        it('should unlock funds after timeout', async function() {
+            await logiToken.generateTokens(alice, tokens(1), { from: sid });
+
+            let timeout = (Date.now() / 1000) + (60 * 60 * 24 * 31);
+
+            await logiToken.setLocks([alice], [timeout], { from: sid });
+            await logiToken.finishMinting();
+
+            waitOneMonth();
+
+            assert.isTrue(await logiToken.transfer.call(bob, tokens(1), { from: alice }))
         });
     });
 });
