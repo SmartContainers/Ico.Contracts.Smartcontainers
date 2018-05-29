@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 /*
  *  To simplify flow and deploying process we don't use MiniMe controller approach,
@@ -17,7 +17,7 @@ contract LogiToken is ERC677 {
     /**
      * @dev Logi constructor just parametrizes the ERC677 -> MiniMeToken constructor
      */
-    function LogiToken() public ERC677(
+    constructor() public ERC677(
         0x0,                      // no parent token
         0,                        // no parent token - no snapshot block number
         "LogiToken",              // Token name
@@ -25,13 +25,15 @@ contract LogiToken is ERC677 {
         "LOGI",                   // Symbol
         false                     // Disable transfers for time of minting
     ) {}
-
+    
 
     // use the smallest denomination unit to operate with token amounts
     uint256 public constant maxSupply = 100 * 1000 * 1000 * 10**uint256(decimals);
 
     // mapping for locking certain addresses
     mapping(address => uint256) public lockups;
+
+    event LockedTokens(address indexed _holder, uint256 _lockup);
 
     /**
      * @notice Sets the locks of an array of addresses.
@@ -49,9 +51,11 @@ contract LogiToken is ERC677 {
             uint256 lockup = _lockups[i];
 
             // make sure lockup period can not be overwritten once set
-            require(now >= lockups[holder]);
+            require(lockups[holder] == 0);
 
             lockups[holder] = lockup;
+
+            emit LockedTokens(holder, lockup);
         }
     }
 

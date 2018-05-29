@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 /**
  * To simplify flow and deploying process we don't use MiniMe controller approach, instead we extend it through inheritance.
@@ -25,13 +25,15 @@ contract SmarcToken is ERC677, Ownable {
     // mapping for locking certain addresses
     mapping(address => uint256) public lockups;
 
+    event LockedTokens(address indexed _holder, uint256 _lockup);
+
     // burnable address
     address public burnable;
 
     /**
      * @dev Smarc constructor just parametrizes the ERC677 -> MiniMeToken constructor
      */
-    function SmarcToken() public ERC677(
+    constructor() public ERC677(
         0x0,                      // no parent token
         0,                        // no parent token - no snapshot block number
         "SmarcToken",             // Token name
@@ -50,7 +52,7 @@ contract SmarcToken is ERC677, Ownable {
      */
     function setLocks(address[] _holders, uint256[] _lockups) public onlyController {
         require(_holders.length == _lockups.length);
-        require(_holders.length < 255);
+        require(_holders.length < 256);
         require(transfersEnabled == false);
 
         for (uint8 i = 0; i < _holders.length; i++) {
@@ -58,9 +60,11 @@ contract SmarcToken is ERC677, Ownable {
             uint256 lockup = _lockups[i];
 
             // make sure lockup period can not be overwritten once set
-            require(now >= lockups[holder]);
+            require(lockups[holder] == 0);
 
             lockups[holder] = lockup;
+
+            emit LockedTokens(holder, lockup);
         }
     }
 
@@ -110,11 +114,11 @@ contract SmarcToken is ERC677, Ownable {
      * @param _amount The amount of tokens to burn
      * @return True if the tokens are burned correctly
      */
-    function burn(uint _amount) public onlyOwner returns (bool) {
+    function burn(uint256 _amount) public onlyOwner returns (bool) {
         require(burnable != address(0x0)); // burnable address must be set
 
-        uint currTotalSupply = totalSupply();
-        uint previousBalance = balanceOf(burnable);
+        uint256 currTotalSupply = totalSupply();
+        uint256 previousBalance = balanceOf(burnable);
 
         require(currTotalSupply >= _amount);
         require(previousBalance >= _amount);

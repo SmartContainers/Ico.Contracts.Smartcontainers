@@ -20,7 +20,13 @@ contract('LOGI', function(accounts) {
 
     function waitOneMonth() {
         const oneMonth = 60 * 60 * 24 * 31;
-        web3.currentProvider.send({ jsonrpc: "2.0", method: "evm_increaseTime", params: [oneMonth], id: 0 })
+        const id = Date.now();
+        web3.currentProvider.send({ jsonrpc: "2.0", method: "evm_increaseTime", params: [oneMonth], id: id });
+        web3.currentProvider.send({ jsonrpc: "2.0", method: "evm_mine", id: id + 1 });
+    };
+
+    function latestTime() {
+        return web3.eth.getBlock('latest').timestamp;
     };
 
     beforeEach(async function() {
@@ -49,7 +55,7 @@ contract('LOGI', function(accounts) {
         it('should lock funds', async function() {
             await logiToken.generateTokens(alice, tokens(1), { from: sid });
 
-            let timeout = (Date.now() / 1000) + (60 * 60 * 24 * 31);
+            let timeout = latestTime() + (60 * 60 * 24 * 31);
 
             await logiToken.setLocks([alice], [timeout], { from: sid });
             await logiToken.finishMinting();
@@ -60,7 +66,7 @@ contract('LOGI', function(accounts) {
         it('should unlock funds after timeout', async function() {
             await logiToken.generateTokens(alice, tokens(1), { from: sid });
 
-            let timeout = (Date.now() / 1000) + (60 * 60 * 24 * 31);
+            let timeout = latestTime() + (60 * 60 * 24 * 31);
 
             await logiToken.setLocks([alice], [timeout], { from: sid });
             await logiToken.finishMinting();
@@ -68,6 +74,13 @@ contract('LOGI', function(accounts) {
             waitOneMonth();
 
             assert.isTrue(await logiToken.transfer.call(bob, tokens(1), { from: alice }))
+        });
+
+        it('should fire LockedTokens event', async function() {
+            let timeout = latestTime() + (60 * 60 * 24 * 31);
+            let result = await logiToken.setLocks([alice], [timeout], { from: sid });
+            var log = result.logs.find(log => log.event == "LockedTokens" && log.args._holder == alice && log.args._lockup == timeout);
+            assert(!!log);
         });
     });
 });

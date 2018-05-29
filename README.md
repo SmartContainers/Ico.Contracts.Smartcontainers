@@ -1,15 +1,19 @@
-# Ico.Contracts.Smartcontainers
+# Lykke.Ico.Contracts.Skycell
 
-Both tokens (SMARC and LOGI) are based on [MiniMe](https://github.com/Giveth/minime) token.
+Both tokens (SMARC and LOGI) are based on [MiniMe](https://github.com/Giveth/minime) token, based on version https://github.com/Giveth/minime/commit/ea04d950eea153a04c51fa510b068b9dded390cb.
 This allows us to have fully-functional ERC-20 tokens with just a couple lines of code and to reduce amount of restrictions for further functionality.
 All additional facilities, like voting, will be implemented through MiniMe cloning abilities.
 
-MiniMe token is used as is except cloning functionality - factory and createCloneToken() method had been deleted.
+MiniMe token is used as is except cloning functionality - `MiniMeTokenFactory` contract and `createCloneToken()` method had been deleted.
 This significantly decreased deployment gas amount for both tokens.
-
-Note from Smart Containers Team:
-There will be hurdles with paying out dividends according to Swiss Law (KYC process, deduct 1/3 taxes from full dividend amount, etc.). We expect to pay out first dividends in 2020 for year 2019. So we have decided to not fix dividend payments in the smart contract today but cross the bridge when we get to it. It could be that Swiss legislation has changed until then when it comes to token dividend distribution. Through implementing the MiniMe Token, we can ask our tokenholders how they want to proceed with the dividend payment when we come to it (there are several options how we could execute this). 
-Please note that we are legally bound by our token sales terms to pay out 20% of dividends to 120 M Tokens. We just haven't fixed it in the contract yet but can deploy this function at a later point in time.
+   
+Also code style aligned to Solidity 0.4.22:
+- `uint` -> `uint256`
+- `emit` events
+- `if (.. || .. && ..)` expressions on single line
+- `constant` -> `view` for functions
+- 4-space indentation
+- token-name-function -> `constructor`
 
 ## Development Process
 

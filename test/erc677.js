@@ -6,7 +6,7 @@ const expect = require('chai')
     .use(require('chai-bignumber')(web3.BigNumber))
     .expect;
 
-const erc677NotCompatible = artifacts.require("ERC677NotCompatible");
+const erc677NotCompatible = artifacts.require("Empty");
 const erc677Receiver = artifacts.require("ERC677Receiver");
 
 /**
@@ -110,8 +110,7 @@ module.exports = function(options) {
             });
 
             it('should revert when trying to transfer to not-ERC677-compatible contract', async function() {
-                await expectRevertOrFail(contract.transferAndCall(erc677NotCompatibleContract.address, tokens(10), [], { from: alice }));
-                await expectRevertOrFail(contract.transferAndCall(erc677NotCompatibleContract.address, tokens(initialSupply.plus(1)), [], { from: sid }));
+                await expectRevertOrFail(contract.transferAndCall(erc677NotCompatibleContract.address, tokens(1), [], { from: sid }));
             });
 
             it('should fire Transfer event with additional data', async function() {

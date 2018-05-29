@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 /**
  * This is a sample of voting contract for holders of Logi token.
@@ -31,7 +31,16 @@ contract LogiVotingSample is TokenController, Ownable {
      * @param _yay The address for YES votes
      * @param _nay The address for NO votes
      */
-    function LogiVotingSample(address _logi, uint256 _logiSnapshotBlock, address _yay, address _nay) public {
+    constructor(address _logi, uint256 _logiSnapshotBlock, address _yay, address _nay) public {
+        // check if voting addresses are valid
+        require(_yay != address(0x0));
+        require(_nay != address(0x0));
+
+        // check if voting addresses have zero balance
+        MiniMeToken src = MiniMeToken(_logi);
+        require(src.balanceOf(_yay) == 0);
+        require(src.balanceOf(_nay) == 0);        
+
         // create new token that points to Logi as it's parent
         votingToken = new MiniMeToken(
             _logi,                    // Logi
